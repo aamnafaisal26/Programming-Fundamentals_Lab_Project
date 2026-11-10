@@ -119,38 +119,220 @@ void showBudgetWarning(struct Expense list[], int count, struct Settings *s, int
 
 //VIEW
 
-void viewExpenses(struct Expense list[], int count);
-// Asks sort order, sorts a COPY of list, prints table, chart, summary.
 
-void sortExpenses(struct Expense list[], int count, int mode);
-// Bubble sort. Swaps neighbours when isBefore says the second should come first.
+//VIEW
 
-int isBefore(struct Expense a, struct Expense b, int mode);
-// mode 1: a.id < b.id   mode 2: a date before b   mode 3: a.amount > b.amount
+double calculateTotal(struct Expense list[], int count)
+{
+    double total = 0;
 
-void showExpenseTable(struct Expense list[], int count);
-// Prints a header, a dashed line, one aligned row per record, a dashed line.
+    for (int i = 0; i < count; i++) {
+        total += list[i].amount;
+    }
 
-void calculateCategoryTotals(struct Expense list[], int count, double totals[]);
-// Sets totals[0..7] to 0, then adds each record's amount into totals[category].
+    return total;
+}
 
-void showCategoryChart(struct Expense list[], int count);
-// For each category with spending: name, a bar of # scaled to the biggest,
-// the amount, and its percent of the total.
+int findBiggestExpense(struct Expense list[], int count)
+{
+    if (count == 0)
+        return -1;
 
-void showSummary(struct Expense list[], int count);
-// Prints total spent, this month's total, biggest category, biggest single expense.
+    int biggest = 0;
 
-double calculateTotal(struct Expense list[], int count);
-// Adds up all amounts.
+    for (int i = 1; i < count; i++) {
+        if (list[i].amount > list[biggest].amount)
+            biggest = i;
+    }
 
-int findBiggestExpense(struct Expense list[], int count);
-// Returns the index of the record with the largest amount.
+    return biggest;
+}
 
-int findBiggestCategory(struct Expense list[], int count);
-// Returns the index of the category with the largest total.
+void calculateCategoryTotals(struct Expense list[], int count, double totals[])
+{
+    for (int i = 0; i < NUM_CATEGORIES; i++) {
+        totals[i] = 0;
+    }
+
+    for (int i = 0; i < count; i++) {
+        if (list[i].category >= 0 &&
+            list[i].category < NUM_CATEGORIES) {
+            totals[list[i].category] += list[i].amount;
+        }
+    }
+}
+
+int findBiggestCategory(struct Expense list[], int count)
+{
+    if (count == 0)
+        return -1;
+
+    double totals[NUM_CATEGORIES];
+
+    calculateCategoryTotals(list, count, totals);
+
+    int biggest = 0;
+
+    for (int i = 1; i < NUM_CATEGORIES; i++) {
+        if (totals[i] > totals[biggest])
+            biggest = i;
+    }
+
+    return biggest;
+}
+
+int isBefore(struct Expense a, struct Expense b, int mode)
+{
+    if (mode == 1)
+        return a.id < b.id;
+
+    if (mode == 2)
+        return dateToNumber(a.day, a.month, a.year) <
+               dateToNumber(b.day, b.month, b.year);
+
+    if (mode == 3)
+        return a.amount > b.amount;
+
+    return 0;
+}
+
+void sortExpenses(struct Expense list[], int count, int mode)
+{
+    for (int i = 0; i < count - 1; i++) {
+        for (int j = 0; j < count - i - 1; j++) {
+
+            if (isBefore(list[j + 1], list[j], mode)) {
+                struct Expense temp = list[j];
+                list[j] = list[j + 1];
+                list[j + 1] = temp;
+            }
+        }
+    }
+}
+
+void showExpenseTable(struct Expense list[], int count)
+{
+    printf("\n%-5s %-12s %-16s %-12s %-30s\n",
+           "ID", "Date", "Category", "Amount", "Description");
+
+    printf("-------------------------------------------------------------------------------\n");
+
+    for (int i = 0; i < count; i++) {
+        printf("%-5d %02d/%02d/%-7d %-16s %-12.2f %-30.30s\n",
+               list[i].id,
+               list[i].day,
+               list[i].month,
+               list[i].year,
+               CATEGORY_NAMES[list[i].category],
+               list[i].amount,
+               list[i].description);
+    }
+
+    printf("-------------------------------------------------------------------------------\n");
+}
+
+void showCategoryChart(struct Expense list[], int count)
+{
+    double totals[NUM_CATEGORIES];
+    double total = calculateTotal(list, count);
+    double biggest = 0;
+
+    calculateCategoryTotals(list, count, totals);
+
+    for (int i = 0; i < NUM_CATEGORIES; i++) {
+        if (totals[i] > biggest)
+            biggest = totals[i];
+    }
+
+    printf("\nCATEGORY SPENDING CHART\n");
+
+    if (biggest == 0 || total == 0) {
+        printf("No spending to display.\n");
+        return;
+    }
+
+    for (int i = 0; i < NUM_CATEGORIES; i++) {
+        if (totals[i] > 0) {
+            int bars = (int)(totals[i] / biggest * 20);
+            double percent = totals[i] / total * 100;
+
+            printf("%-16s ", CATEGORY_NAMES[i]);
+
+            for (int j = 0; j < bars; j++) {
+                printf("#");
+            }
+
+            printf(" %.2f (%.1f%%)\n", totals[i], percent);
+        }
+    }
+}
+
+void showSummary(struct Expense list[], int count)
+{
+    if (count == 0) {
+        printf("\nNo expenses to summarize.\n");
+        return;
+    }
+
+    int day, month, year;
+
+    getTodayDate(&day, &month, &year);
+
+    double total = calculateTotal(list, count);
+    double monthly = calculateMonthSpending(list, count, month, year);
+
+    int biggestExpense = findBiggestExpense(list, count);
+    int biggestCategory = findBiggestCategory(list, count);
+
+    double totals[NUM_CATEGORIES];
+
+    calculateCategoryTotals(list, count, totals);
+
+    printf("\nEXPENSE SUMMARY\n");
+    printf("Total spent: %.2f\n", total);
+    printf("This month's spending: %.2f\n", monthly);
+
+    if (biggestCategory != -1) {
+        printf("Biggest category: %s (%.2f)\n",
+               CATEGORY_NAMES[biggestCategory],
+               totals[biggestCategory]);
+    }
+
+    if (biggestExpense != -1) {
+        printf("Biggest single expense: %s (%.2f)\n",
+               list[biggestExpense].description,
+               list[biggestExpense].amount);
+    }
+}
+
+void viewExpenses(struct Expense list[], int count)
+{
+    if (count == 0) {
+        printf("\nNo expenses found.\n");
+        return;
+    }
+
+    struct Expense copy[MAX_EXPENSES];
+
+    for (int i = 0; i < count; i++) {
+        copy[i] = list[i];
+    }
+
+    printf("\n1. Sort by ID");
+    printf("\n2. Sort by Date");
+    printf("\n3. Sort by Amount\n");
+
+    int mode = inputWholeNumber("Choose sort order: ", 1, 3);
+
+    sortExpenses(copy, count, mode);
+
+    showExpenseTable(copy, count);
+    showCategoryChart(copy, count);
+    showSummary(copy, count);
+}
 
 //VIEW END
+
 
 
 //SEARCH
@@ -195,14 +377,51 @@ void showOneExpense(struct Expense e);
 //EDIT END
 
 
+
 //DELETE
 
-int deleteExpense(struct Expense list[], int count);
-// Asks an id, finds it, shows it, asks y/n, removes it, saves.
-// Returns the new count.
+void removeAtIndex(struct Expense list[], int count, int index)
+{
+    for (int i = index; i < count - 1; i++) {
+        list[i] = list[i + 1];
+    }
+}
 
-void removeAtIndex(struct Expense list[], int count, int index);
-// Moves every record after index one slot to the left.
+int deleteExpense(struct Expense list[], int count)
+{
+    if (count == 0) {
+        printf("\nNo expenses to delete.\n");
+        return count;
+    }
+
+    int id = inputWholeNumber("Enter expense ID to delete: ", 1, 999999);
+    int index = findById(list, count, id);
+
+    if (index == -1) {
+        printf("\nExpense not found.\n");
+        return count;
+    }
+
+    printf("\nExpense found:\n");
+    showOneExpense(list[index]);
+
+    int confirm = inputYesNo("Are you sure you want to delete? (y/n): ");
+
+    if (confirm == 0) {
+        printf("\nDeletion cancelled.\n");
+        return count;
+    }
+
+    removeAtIndex(list, count, index);
+
+    count--;
+
+    saveExpensesToFile(list, count);
+
+    printf("\nExpense deleted successfully!\n");
+
+    return count;
+}
 
 //DELETE END
 
