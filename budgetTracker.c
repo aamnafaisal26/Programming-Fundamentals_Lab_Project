@@ -22,6 +22,7 @@ struct Expense {
 struct Settings {
     double monthlyIncome;
     double monthlyLimit;        // 0 = no limit
+    int    lastId;              // biggest ID ever given out, never goes down
 };
 
 const char *CATEGORY_NAMES[NUM_CATEGORIES] = {
@@ -127,8 +128,8 @@ void saveSettingsToFile(struct Settings *s){
         printf(RED BOLD "Could not save settings.\n" RESET);
         return;
     }
-    fprintf(file,"monthly income,monthly limit\n");
-    fprintf(file,"%.2f,%.2f\n",s->monthlyIncome,s->monthlyLimit);
+    fprintf(file,"monthly income,monthly limit,last id\n");
+    fprintf(file,"%.2f,%.2f,%d\n",s->monthlyIncome,s->monthlyLimit,s->lastId);
     fclose(file);
 }
 
@@ -137,6 +138,7 @@ void loadSettingsFromFile(struct Settings *s){
     if(file==NULL){
         s->monthlyIncome=0;
         s->monthlyLimit=0;
+        s->lastId=0;
         saveSettingsToFile(s);
         return;
     }
@@ -144,11 +146,14 @@ void loadSettingsFromFile(struct Settings *s){
     fgets(line,200,file);
     int got=0;
     if(fgets(line,200,file)!=NULL){
-        got=sscanf(line,"%lf,%lf",&s->monthlyIncome,&s->monthlyLimit);
+        got=sscanf(line,"%lf,%lf,%d",&s->monthlyIncome,&s->monthlyLimit,&s->lastId);
     }
-    if(got!=2){
+    if(got<2){
         s->monthlyIncome=0;
         s->monthlyLimit=0;
+    }
+    if(got<3){
+        s->lastId=0;
     }
     fclose(file);
 }
@@ -219,7 +224,7 @@ int addExpense(struct Expense list[], int count, struct Settings *s){
         return count;
     }
     struct Expense e;
-    e.id=generateNextId(list,count);
+    e.id=generateNextId(list,count,s);
     inputDate(&e.day, &e.month, &e.year);
     e.category=inputCategory();
     e.amount=inputAmount("Amount: ", 1);
@@ -228,6 +233,7 @@ int addExpense(struct Expense list[], int count, struct Settings *s){
     list[count]=e;
     count++;
     saveExpensesToFile(list, count);
+    saveSettingsToFile(s);
     printf("Added expense #%d\n", e.id);
     showBudgetWarning(list, count, s, e.month, e.year);
     return count;
@@ -237,14 +243,15 @@ int addExpense(struct Expense list[], int count, struct Settings *s){
 }
 
 
-int generateNextId(struct Expense list[], int count){
-    int biggest=0;
+int generateNextId(struct Expense list[], int count, struct Settings *s){
+    int biggest=s->lastId;
     for(int i=0;i<count;i++){
         if(list[i].id>biggest){
             biggest=list[i].id;
         }
     }
-    return biggest+1;
+    s->lastId=biggest+1;
+    return s->lastId;
 }
 
 void removeCommas(char string[]){

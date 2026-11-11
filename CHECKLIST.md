@@ -116,7 +116,7 @@ Everything except Mehreen's 15 functions is written and tested. The full program
 
 ## Settings: 0 / 2
 
-- [ ] `changeSettings`: change income or limit, then save
+- [ ] `changeSettings`: change income or limit, then save. *Change only `monthlyIncome` or `monthlyLimit`, then call `saveSettingsToFile(s)`. Settings.csv also stores `lastId`, the ID counter, and it must not be reset.*
 - [ ] `showSettings`: prints income and limit
 
 ---
