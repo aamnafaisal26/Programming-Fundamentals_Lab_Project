@@ -218,21 +218,69 @@ int addExpense(struct Expense list[], int count, struct Settings *s);
 // adds it to list, saves the file, prints "Added", shows the budget warning.
 // Returns the new count.
 
-int generateNextId(struct Expense list[], int count);
-// Returns the biggest id in list plus 1. Empty list gives 1.
+int generateNextId(struct Expense list[], int count){
+    int biggest=0;
+    for(int i=0;i<count;i++){
+        if(list[i].id>biggest){
+            biggest=list[i].id;
+        }
+    }
+    return biggest+1;
+}
 
-void removeCommas(char string[]);
-// Replaces every comma in string with a space so the CSV does not break.
+void removeCommas(char string[]){
+    for(int i=0;string[i]!='\0';i++){
+        if (string[i]==','){
+            string[i]=' ';
+        }
+    }
+}
 
-void showCategoryList(void);
-// Prints the 8 categories numbered 1 to 8.
+void showCategoryList(){
+    for (int i=0;i<NUM_CATEGORIES;i++){
+        printf("%d. %s\n",i+1,CATEGORY_NAMES[i]);
+    }
+}
 
-double calculateMonthSpending(struct Expense list[], int count, int month, int year);
-// Adds up the amounts of all records in that month and year.
+double calculateMonthSpending(struct Expense list[], int count, int month, int year){
+    double total=0;
+    for(int i=0;i<count;i++){
+        if(list[i].month==month && list[i].year==year){
+            total+=list[i].amount;
+        }
+    }
+    return total;
+}
 
-void showBudgetWarning(struct Expense list[], int count, struct Settings *s, int month, int year);
-// Compares that month's spending with the limit.
-// Prints over budget, or careful at 80%, or a normal status. Silent if limit is 0.
+void showBudgetWarning(struct Expense list[], int count, struct Settings *s, int month, int year){
+    if (s->monthlyLimit<=0){
+        return;
+    }
+    double total=calculateMonthSpending(list,count,month,year);
+    double limit=s->monthlyLimit;
+
+    if (total>limit){
+        printf("\n" BOLD RED "OVER LIMIT" RESET "\n");
+        printf("Monthly budget : %.2f\n",limit);
+        printf("Your spending  : %.2f\n",total);
+        printf("Used           : %.1f%%\n",total/limit*100);
+        printf("Over by        : %.2f\n",total-limit);
+    }
+    else if (total>=limit*0.8){
+        printf("\n" BOLD YELLOW "CAREFUL" RESET "\n");
+        printf("Monthly budget : %.2f\n",limit);
+        printf("Your spending  : %.2f\n",total);
+        printf("Used           : %.1f%%\n",total/limit*100);
+        printf("Remaining      : %.2f\n",limit-total);
+    }
+    else{
+        printf("\n" BOLD GREEN "ON TRACK" RESET "\n");
+        printf("Monthly budget : %.2f\n",limit);
+        printf("Your spending  : %.2f\n",total);
+        printf("Used           : %.1f%%\n",total/limit*100);
+        printf("Remaining      : %.2f\n",limit-total);
+    }
+}
 
 //ADD END
 
@@ -503,11 +551,22 @@ void editExpense(struct Expense list[], int count, struct Settings *s);
 // Asks an id, finds it (-1 = not found, stop), shows it, asks which field
 // to change (date / category / amount / description), changes it, saves, warns.
 
-int findById(struct Expense list[], int count, int id);
-// Returns the index of the record with that id, or -1 if none.
+int findById(struct Expense list[], int count, int id){
+    for(int i=0;i<count;i++){
+        if(list[i].id==id){
+            return i;
+        }
+    }
+    return -1;
+}
 
-void showOneExpense(struct Expense e);
-// Prints one record, each field on its own line.
+void showOneExpense(struct Expense e){
+    printf(BOLD"ID          : "RESET"%d\n",e.id);
+    printf(BOLD"Date        : "RESET"%02d/%02d/%d\n",e.day,e.month,e.year);
+    printf(BOLD"Category    : "RESET"%s\n",CATEGORY_NAMES[e.category]);
+    printf(BOLD"Amount      : "RESET"%.2f\n",e.amount);
+    printf(BOLD"Description : "RESET"%s\n",e.description);
+}
 
 //EDIT END
 
@@ -567,12 +626,9 @@ void showBudget(struct Expense list[], int count, struct Settings *s);
 // Asks month and year. Prints income, spent, remaining, limit, status,
 // and a category chart for that month only.
 
-double calculateRemaining(struct Settings *s, double spent);
-// Returns income minus spent.
-
-void showBudgetStatus(double spent, struct Settings *s);
-// Prints OK (green), CAREFUL at 80% (yellow), or OVER BUDGET (red).
-// Prints "no limit set" if limit is 0.
+double calculateRemaining(struct Settings *s, double spent){
+    return (s->monthlyIncome-spent);
+}
 
 //BUDGET END
 
