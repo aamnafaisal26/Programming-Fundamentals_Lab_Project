@@ -29,6 +29,24 @@ const char *CATEGORY_NAMES[NUM_CATEGORIES] = {
     "Entertainment", "Education", "Health", "Other"
 };
 
+// Colour codes: print one before text, print RESET after it.
+#define RED            "\033[31m"   // kept for the over-budget warning only
+#define GREEN          "\033[32m"
+#define YELLOW         "\033[33m"
+#define MAGENTA        "\033[35m"
+#define GREY           "\033[90m"
+#define BRIGHT_YELLOW  "\033[93m"
+#define BRIGHT_BLUE    "\033[94m"
+#define BRIGHT_MAGENTA "\033[95m"
+#define BRIGHT_CYAN    "\033[96m"
+#define RESET          "\033[0m"
+
+// One colour per category, in the same order as CATEGORY_NAMES.
+const char *CATEGORY_COLORS[NUM_CATEGORIES] = {
+    GREEN, BRIGHT_CYAN, BRIGHT_MAGENTA, YELLOW,
+    BRIGHT_BLUE, BRIGHT_YELLOW, MAGENTA, GREY
+};
+
 
 //FILE
 
@@ -258,6 +276,8 @@ void showCategoryChart(struct Expense list[], int count)
 
             printf("%-16s ", CATEGORY_NAMES[i]);
 
+            printf("%s", CATEGORY_COLORS[i]);   // colour on
+
             for (int j = 0; j < bars; j++) {
                 printf("*");
             }
@@ -268,6 +288,8 @@ void showCategoryChart(struct Expense list[], int count)
                 printf(".");    // too small for a full star
                 printed = 1;
             }
+
+            printf(RESET);                      // colour off, before the padding
 
             // fill the rest of the 20-wide bar area with spaces
             for (int j = printed; j < 20; j++) {
