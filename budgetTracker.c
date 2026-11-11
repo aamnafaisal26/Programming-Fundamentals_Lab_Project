@@ -212,13 +212,13 @@ void sortExpenses(struct Expense list[], int count, int mode)
 
 void showExpenseTable(struct Expense list[], int count)
 {
-    printf("\n%-5s %-12s %-16s %-12s %-30s\n",
+    printf("\n%-5s %-12s %-15s %12s  %s\n",
            "ID", "Date", "Category", "Amount", "Description");
 
     printf("-------------------------------------------------------------------------------\n");
 
     for (int i = 0; i < count; i++) {
-        printf("%-5d %02d/%02d/%-7d %-16s %-12.2f %-30.30s\n",
+        printf("%-5d %02d/%02d/%-6d %-15s %12.2f  %.30s\n",
                list[i].id,
                list[i].day,
                list[i].month,
@@ -259,10 +259,22 @@ void showCategoryChart(struct Expense list[], int count)
             printf("%-16s ", CATEGORY_NAMES[i]);
 
             for (int j = 0; j < bars; j++) {
-                printf("#");
+                printf("*");
             }
 
-            printf(" %.2f (%.1f%%)\n", totals[i], percent);
+            int printed = bars;
+
+            if (bars == 0) {
+                printf(".");    // too small for a full star
+                printed = 1;
+            }
+
+            // fill the rest of the 20-wide bar area with spaces
+            for (int j = printed; j < 20; j++) {
+                printf(" ");
+            }
+
+            printf(" %12.2f  %5.1f%%\n", totals[i], percent);
         }
     }
 }
