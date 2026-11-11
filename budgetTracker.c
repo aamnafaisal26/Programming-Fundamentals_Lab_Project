@@ -69,20 +69,89 @@ void showSubHeading(const char *text)
 
 //FILE
 
-int loadExpensesFromFile(struct Expense list[]);
-// Opens ExpenseFile.csv, skips the header line, reads every row into list.
-// Returns how many were read. If the file does not exist, returns 0.
 
-void saveExpensesToFile(struct Expense list[], int count);
-// Opens ExpenseFile.csv for writing, writes the header line,
-// then one comma-separated line per record.
+int findCategoryByName(const char name[]){
+    for(int i=0;i<NUM_CATEGORIES;i++){
+        if(strcmp(name,CATEGORY_NAMES[i])==0){
+            return i;       
+        }
+    }
+    return -1;              
+}
 
-void loadSettingsFromFile(struct Settings *s);
-// Reads monthly income and limit from settings.csv.
-// If the file does not exist, sets both to 0 and creates it.
+int loadExpensesFromFile(struct Expense list[]){
+    FILE *file=fopen("Expenses.csv","r");
+    if(file==NULL){
+        return 0;
+    }
+    char line[200];
+    int count=0;
+    fgets(line, 200, file);
+    while(count < MAX_EXPENSES){
+        if(fgets(line, 200, file)==NULL){
+            break;
+        }
+        struct Expense e;
+        char categoryName[20];
+        int got=sscanf(line,"%d,%d/%d/%d,%19[^,],%lf,%49[^\n]",&e.id,&e.day,&e.month,&e.year,categoryName,&e.amount,e.description);
+        e.category=findCategoryByName(categoryName);
+        if(got==7&&e.category!=-1){
+            list[count]=e;
+            count++;
+        }
+    }
+    fclose(file);
+    return count;
+}
 
-void saveSettingsToFile(struct Settings *s);
-// Writes the header line and the two numbers to settings.csv.
+
+void saveExpensesToFile(struct Expense list[], int count){
+    FILE *file=fopen("Expenses.csv","w");
+    if (file == NULL) {
+    printf(RED BOLD"Could not open the file.\n"RESET);
+    return;
+    }
+    fprintf(file,"ID,Date,Category,Amount,Description\n");
+    for(int i=0;i< count;i++){
+        fprintf(file,"%d,%d/%d/%d,%s,%.2f,%s\n",list[i].id,list[i].day,list[i].month,list[i].year,CATEGORY_NAMES[list[i].category],list[i].amount,list[i].description);
+    }
+    fclose(file);
+
+
+}
+
+
+void saveSettingsToFile(struct Settings *s){
+    FILE *file=fopen("Settings.csv","w");
+    if(file==NULL){
+        printf(RED BOLD "Could not save settings.\n" RESET);
+        return;
+    }
+    fprintf(file,"monthly income,monthly limit\n");
+    fprintf(file,"%.2f,%.2f\n",s->monthlyIncome,s->monthlyLimit);
+    fclose(file);
+}
+
+void loadSettingsFromFile(struct Settings *s){
+    FILE *file=fopen("Settings.csv","r");
+    if(file==NULL){
+        s->monthlyIncome=0;
+        s->monthlyLimit=0;
+        saveSettingsToFile(s);
+        return;
+    }
+    char line[200];
+    fgets(line,200,file);
+    int got=0;
+    if(fgets(line,200,file)!=NULL){
+        got=sscanf(line,"%lf,%lf",&s->monthlyIncome,&s->monthlyLimit);
+    }
+    if(got!=2){
+        s->monthlyIncome=0;
+        s->monthlyLimit=0;
+    }
+    fclose(file);
+}
 
 //FILE END
 
@@ -108,27 +177,41 @@ void inputDate(int *day, int *month, int *year);
 // Asks all three again until isDateReal returns 1.
 
 int inputCategory(void);
-// Shows the category list, asks for 1-8, returns the answer minus 1.
+// Shows the category list, asks for 1-8, returns the (answer minus 1).
 
 //INPUT END
 
 
 //DATE
 
-int isDateReal(int day, int month, int year);
-// Returns 1 if the day exists in that month (leap year included),
-// the year is 2000 or later, and the date is not after today.
-
-void getTodayDate(int *day, int *month, int *year);
-// Gets today's date from the system clock (month +1, year +1900).
-
-int dateToNumber(int day, int month, int year);
-// Returns year*10000 + month*100 + day, e.g. 20261108, so dates can be compared.
-
-//DATE END
+int isDateReal(int day, int month, int year){
+    int date=dateToNumber(day,month,year);
+    int max_day,max_month,max_year;
+    getTodayDate(&max_day,&max_month,&max_year);
+    int maxdate=dateToNumber(max_day,max_month,max_year);
+    int leastdate=dateToNumber(1,1,2000);
+    int days_in_month[12]={31,((year % 400 == 0) || (year % 4 == 0 && year % 100 != 0))? 29:28,31,30,31,30,31,31,30,31,30,31};
+    return (date>=leastdate&&date<=maxdate&&(month>=1&&month<=12)&&(day>=1&&day<=days_in_month[month-1]))?1:0;
 
 
-//ADD
+
+}
+void getTodayDate(int *day, int *month, int *year){
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+
+    *day= t->tm_mday;
+    *month= t->tm_mon + 1;
+    *year=t->tm_year + 1900;
+
+}
+
+int dateToNumber(int day, int month, int year){
+    int date;
+    date=(year*10000)+(month*100)+(day);
+    return date;
+}
+//END
 
 int addExpense(struct Expense list[], int count, struct Settings *s);
 // Stops if list is full. Fills one record using the input functions,
