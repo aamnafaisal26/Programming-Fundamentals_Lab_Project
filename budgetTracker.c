@@ -51,6 +51,76 @@ const char *CATEGORY_COLORS[NUM_CATEGORIES] = {
 };
 
 
+// FUNCTION LIST
+// One promise line per function, so the compiler knows them all before
+// it reads any of them. This is why the functions below can stay in any
+// order inside their labelled sections.
+
+// DISPLAY
+void   showHeading(const char *text);
+void   showSubHeading(const char *text);
+// FILE
+int    findCategoryByName(const char name[]);
+int    loadExpensesFromFile(struct Expense list[]);
+void   saveExpensesToFile(struct Expense list[], int count);
+void   saveSettingsToFile(struct Settings *s);
+void   loadSettingsFromFile(struct Settings *s);
+// INPUT
+int    inputWholeNumber(const char *prompt, int min, int max);
+double inputAmount(const char *prompt, double min);
+void   inputText(const char *prompt, char string[], int size);
+int    inputYesNo(const char *prompt);
+void   inputDate(int *day, int *month, int *year);
+int    inputCategory(void);
+// DATE
+int    isDateReal(int day, int month, int year);
+void   getTodayDate(int *day, int *month, int *year);
+int    dateToNumber(int day, int month, int year);
+// ADD
+int    addExpense(struct Expense list[], int count, struct Settings *s);
+int    generateNextId(struct Expense list[], int count, struct Settings *s);
+void   removeCommas(char string[]);
+void   showCategoryList(void);
+double calculateMonthSpending(struct Expense list[], int count, int month, int year);
+void   showBudgetWarning(struct Expense list[], int count, struct Settings *s, int month, int year);
+// VIEW
+double calculateTotal(struct Expense list[], int count);
+int    findBiggestExpense(struct Expense list[], int count);
+void   calculateCategoryTotals(struct Expense list[], int count, double totals[]);
+int    findBiggestCategory(struct Expense list[], int count);
+int    isBefore(struct Expense a, struct Expense b, int mode);
+void   sortExpenses(struct Expense list[], int count, int mode);
+void   showExpenseTable(struct Expense list[], int count);
+void   showCategoryChart(struct Expense list[], int count);
+void   showSummary(struct Expense list[], int count);
+void   viewExpenses(struct Expense list[], int count);
+// SEARCH
+void   searchExpenses(struct Expense list[], int count);
+int    searchByCategory(struct Expense list[], int count, struct Expense results[]);
+int    searchByMonth(struct Expense list[], int count, struct Expense results[]);
+int    filterByMonth(struct Expense list[], int count, int month, int year, struct Expense results[]);
+int    searchByDescription(struct Expense list[], int count, struct Expense results[]);
+int    containsIgnoreCase(const char text[], const char word[]);
+void   showSearchResults(struct Expense results[], int found, int showTotal);
+// EDIT
+void   editExpense(struct Expense list[], int count, struct Settings *s);
+int    findById(struct Expense list[], int count, int id);
+void   showOneExpense(struct Expense e);
+// DELETE
+void   removeAtIndex(struct Expense list[], int count, int index);
+int    deleteExpense(struct Expense list[], int count);
+// BUDGET
+void   showBudget(struct Expense list[], int count, struct Settings *s);
+double calculateRemaining(struct Settings *s, double spent);
+// SETTINGS
+void   changeSettings(struct Settings *s);
+void   showSettings(struct Settings *s);
+// MENU
+void   showMenu(void);
+void   clearScreen(void);
+void   pauseScreen(void);
+
+
 //DISPLAY
 
 void showHeading(const char *text)
@@ -216,7 +286,11 @@ int dateToNumber(int day, int month, int year){
     date=(year*10000)+(month*100)+(day);
     return date;
 }
-//END
+
+//DATE END
+
+
+//ADD
 
 int addExpense(struct Expense list[], int count, struct Settings *s){
     if(count>=MAX_EXPENSES){
@@ -309,9 +383,6 @@ void showBudgetWarning(struct Expense list[], int count, struct Settings *s, int
 }
 
 //ADD END
-
-
-//VIEW
 
 
 //VIEW
@@ -588,7 +659,7 @@ void editExpense(struct Expense list[], int count, struct Settings *s){
     showSubHeading("Expense found:");
     showOneExpense(list[pos]);
     printf("\n1. Date\n2. Category\n3. Amount\n4. Description\n0. Cancel\n");
-    int field=inputWholeNumber("Which field do you want to edit : ",0,4);
+    int field=inputWholeNumber("Which field do you want to edit (0 to cancel) : ",0,4);
     switch(field){
         case 0 :
             printf("Edit cancelled.\n");
@@ -685,43 +756,38 @@ int deleteExpense(struct Expense list[], int count)
 
 //BUDGET
 
-double calculateRemaining(struct Settings *s, double spent);
-
 void showBudget(struct Expense list[], int count, struct Settings *s){
-   int todayDay, todayMonth, todayYear;
-   getTodayDate(&todayDay, &todayMonth, &todayYear);
-   int month, year;
-   do {
-    month = inputWholeNumber("Month (1-12): ", 1, 12);
-    year  = inputWholeNumber("Year: ", 2000, todayYear);
-    if (!isDateReal(1, month, year)) {
-        printf("That month hasn't happened yet. Try again.\n");
+    int todayDay, todayMonth, todayYear;
+    getTodayDate(&todayDay, &todayMonth, &todayYear);
+    int month, year;
+    do {
+        month = inputWholeNumber("Month (1-12): ", 1, 12);
+        year  = inputWholeNumber("Year: ", 2000, todayYear);
+        if (!isDateReal(1, month, year)) {
+            printf("That month hasn't happened yet. Try again.\n");
+        }
+    } while (!isDateReal(1, month, year));
+    showHeading("MONTHLY BUDGET");
+    printf(BOLD"Year of "RESET"%d\n",year);
+    printf(BOLD"Month : "RESET"%d\n",month);
+    printf(BOLD"Monthly Income : "RESET"%.2f\n",s->monthlyIncome);
+    double saved = calculateRemaining(s,calculateMonthSpending(list,count,month,year));
+    if (saved < 0) {
+        printf(BOLD"Saved : "RESET RED"%.2f"RESET"\n",saved);
+    } else {
+        printf(BOLD"Saved : "RESET"%.2f\n",saved);
     }
-} while (!isDateReal(1, month, year));
-printf(BOLD UNDERLINE "Monthly Budget\n"RESET);
-printf(BOLD"Year of "RESET"%d\n",year);
-printf(BOLD"Month : "RESET"%d\n",month);
-printf(BOLD"Monthly Income : "RESET"%.2f\n",s->monthlyIncome);
-double saved = calculateRemaining(s,calculateMonthSpending(list,count,month,year));
-if (saved < 0) {
-    printf(BOLD"Saved : "RESET RED"%.2f"RESET"\n",saved);
-} else {
-    printf(BOLD"Saved : "RESET"%.2f\n",saved);
-}
-if (s->monthlyIncome == 0) {
-    printf(BOLD"Saved : "RESET RED"%.2f"RESET"\n",saved);
-    printf("Tip: set your monthly income in Settings.\n");
-}
-showBudgetWarning(list,count,s,month,year);
-struct Expense results[MAX_EXPENSES];
-int found = filterByMonth(list, count, month, year, results);
-if (found > 0) {
-    showCategoryChart(results, found);
-} else {
-    printf("No expenses this month.\n");
-}
-
-
+    if (s->monthlyIncome == 0) {
+        printf("Tip: set your monthly income in Settings.\n");
+    }
+    showBudgetWarning(list,count,s,month,year);
+    struct Expense results[MAX_EXPENSES];
+    int found = filterByMonth(list, count, month, year, results);
+    if (found > 0) {
+        showCategoryChart(results, found);
+    } else {
+        printf("No expenses this month.\n");
+    }
 }
 
 double calculateRemaining(struct Settings *s, double spent){
@@ -755,7 +821,7 @@ void showMenu(void){
     printf("5. Delete expense\n");
     printf("6. Monthly budget\n");
     printf("7. Settings\n");
-    printf("\n0. Exit\n");
+    printf("0. Exit\n");
 }
 
 void clearScreen(void){
@@ -780,7 +846,7 @@ int main(){
     do{
         clearScreen();
         showMenu();
-        choice=inputWholeNumber("What do you wanna do (0-7) : ",0,7);
+        choice=inputWholeNumber("What do you wanna do (0 to exit) : ",0,7);
         switch (choice)
         {
         case 0:

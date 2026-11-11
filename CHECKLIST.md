@@ -133,11 +133,13 @@ Once Mehreen pushes, the whole team should run the program once from start to fi
 
 ## Tidy-up before the demo
 
-- [ ] Put back the `//DATE END` and `//ADD` markers after `dateToNumber`.
-- [ ] Fix the ordering warnings: add one prototype line per function near the top of the file.
+- [x] Put back the `//DATE END` and `//ADD` markers after `dateToNumber`.
+- [x] Fix the ordering warnings: a function list near the top of the file has one promise line per function, so functions can stay in any order inside their sections.
 - [ ] Update the PDF or tell the team that the files are now `Expenses.csv` and `Settings.csv`.
 - [ ] Tell the team that `showBudgetStatus` was dropped; `showBudgetWarning` does that job.
-- [ ] Remove the duplicate `//VIEW` marker.
+- [x] Remove the duplicate `//VIEW` marker.
 - [x] Show the expense table before asking for an ID in Delete, as Edit already does.
-- [ ] Use `showHeading` for the Budget screen's title, to match the other screens.
+- [x] Use `showHeading` for the Budget screen's title, to match the other screens.
+- [x] Put `0. Exit` with the other menu options, and say what 0 does in every prompt that accepts it.
+- [ ] Mehreen: the Search and Settings prompts that accept 0 should say what it does, for example `"Search how (0 to go back): "`.
 - [ ] Test the colours in the terminal used for the demo.
