@@ -4,22 +4,24 @@ Last updated: 11 November 2026
 
 ## Overall progress
 
-**30 of 52 functions done: 58% complete**
+**37 of 52 functions done: 71% complete**
 
 ```
-[#############################.....................]  58%
+[####################################..............]  71%
 ```
 
 | Teammate | Areas | Done | Progress |
 |---|---|---|---|
-| **Aamna** | Display, File, Date, Add, Edit, Budget, Menu | 18 / 25 | `[##############......]` 72% |
+| **Aamna** | Display, File, Date, Add, Edit, Budget, Menu | 25 / 25 | `[####################]` 100% |
 | **Hania** | View, Delete | 12 / 12 | `[####################]` 100% |
 | **Mehreen** | Input, Search, Settings | 0 / 15 | `[....................]` 0% |
-| **Total** | | **30 / 52** | `[############........]` **58%** |
+| **Total** | | **37 / 52** | `[##############......]` **71%** |
+
+Everything except Mehreen's 15 functions is written and tested. The full program was run end to end with stand-ins for Mehreen's functions: adding, viewing, editing, deleting, the budget screen and settings all worked, and the data survived a restart.
 
 ---
 
-# Aamna: 18 of 25 done (72%)
+# Aamna: 25 of 25 done (100%)
 
 ## Display: 2 / 2
 
@@ -40,32 +42,32 @@ Last updated: 11 November 2026
 - [x] `getTodayDate`: gets today's date from the clock
 - [x] `isDateReal`: checks the date exists, is 2000 or later, and is not in the future
 
-## Add: 5 / 6
+## Add: 6 / 6
 
-- [ ] `addExpense`: asks for one expense, stores it, saves, shows the warning. *Waits on Mehreen's Input.*
+- [x] `addExpense`: asks for one expense, stores it, saves, shows the warning
 - [x] `generateNextId`: biggest ID plus one
 - [x] `removeCommas`: turns commas into spaces so the CSV is safe
 - [x] `showCategoryList`: prints the 8 categories numbered 1 to 8
 - [x] `calculateMonthSpending`: total spent in one month
 - [x] `showBudgetWarning`: ON TRACK, CAREFUL or OVER LIMIT with the numbers
 
-## Edit: 2 / 3
+## Edit: 3 / 3
 
-- [ ] `editExpense`: finds an expense by ID and changes one field. *Waits on Mehreen's Input.*
+- [x] `editExpense`: shows the table, finds an expense by ID, changes one field
 - [x] `findById`: position of an ID in the list, or -1
 - [x] `showOneExpense`: prints one expense with bold labels
 
-## Budget: 1 / 2
+## Budget: 2 / 2
 
-- [ ] `showBudget`: the monthly budget screen. *Waits on Mehreen's `inputWholeNumber` and `filterByMonth`.*
+- [x] `showBudget`: the monthly budget screen, with Saved in red when negative
 - [x] `calculateRemaining`: income minus spending
 
-## Menu: 0 / 4
+## Menu: 4 / 4
 
-- [ ] `showMenu`: prints the title and the 8 options
-- [ ] `clearScreen`: clears the terminal
-- [ ] `pauseScreen`: waits for Enter
-- [ ] `main`: loads both files, then runs the menu loop
+- [x] `showMenu`: prints the title and the 8 options
+- [x] `clearScreen`: clears the terminal
+- [x] `pauseScreen`: waits for Enter
+- [x] `main`: loads both files, then runs the menu loop
 
 ---
 
@@ -119,19 +121,23 @@ Last updated: 11 November 2026
 
 ---
 
-## Blocking order
+## What is blocking the finished program
 
-Mehreen's Input functions block the most work. Until `inputWholeNumber` exists, nothing that asks the user a question can run, including the main menu and the sort question in View.
+Only Mehreen's functions. Every other piece is already written and waiting for them.
 
-1. **Input** (Mehreen) first: unblocks `addExpense`, `editExpense`, `showBudget`, `main`, and View's sort question.
-2. **`filterByMonth`** (Mehreen) next: unblocks `showBudget`.
-3. **Menu and `main`** (Aamna) last: the program runs end to end.
+1. **Input** first: the menu, Add, Edit, the Budget screen and View's sort question all ask the user through these. Until they exist, the program cannot run.
+2. **`filterByMonth`** next: the Budget screen needs it for that month's chart.
+3. **Settings and the rest of Search**: after those, every menu option works.
+
+Once Mehreen pushes, the whole team should run the program once from start to finish.
 
 ## Tidy-up before the demo
 
 - [ ] Put back the `//DATE END` and `//ADD` markers after `dateToNumber`.
-- [ ] Fix the three ordering warnings: move `isDateReal` below `dateToNumber`, or add one prototype line per function near the top of the file.
+- [ ] Fix the ordering warnings: add one prototype line per function near the top of the file.
 - [ ] Update the PDF or tell the team that the files are now `Expenses.csv` and `Settings.csv`.
 - [ ] Tell the team that `showBudgetStatus` was dropped; `showBudgetWarning` does that job.
 - [ ] Remove the duplicate `//VIEW` marker.
+- [ ] Hania: show the expense table before asking for an ID in Delete, as Edit already does.
+- [ ] Use `showHeading` for the Budget screen's title, to match the other screens.
 - [ ] Test the colours in the terminal used for the demo.
