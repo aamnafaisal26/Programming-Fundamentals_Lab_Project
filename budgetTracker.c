@@ -288,35 +288,34 @@ void showCategoryChart(struct Expense list[], int count)
         return;
     }
 
+    // every category is listed, even one with no spending
     for (int i = 0; i < NUM_CATEGORIES; i++) {
-        if (totals[i] > 0) {
-            int bars = (int)(totals[i] / biggest * 20);
-            double percent = totals[i] / total * 100;
+        int bars = (int)(totals[i] / biggest * 20);
+        double percent = totals[i] / total * 100;
 
-            printf("%-16s ", CATEGORY_NAMES[i]);
+        printf("%-16s ", CATEGORY_NAMES[i]);
 
-            printf("%s", CATEGORY_COLORS[i]);   // colour on
+        printf("%s", CATEGORY_COLORS[i]);   // colour on
 
-            for (int j = 0; j < bars; j++) {
-                printf("*");
-            }
-
-            int printed = bars;
-
-            if (bars == 0) {
-                printf(".");    // too small for a full star
-                printed = 1;
-            }
-
-            printf(RESET);                      // colour off, before the padding
-
-            // fill the rest of the 20-wide bar area with spaces
-            for (int j = printed; j < 20; j++) {
-                printf(" ");
-            }
-
-            printf(" %12.2f  %5.1f%%\n", totals[i], percent);
+        for (int j = 0; j < bars; j++) {
+            printf("*");
         }
+
+        int printed = bars;
+
+        if (bars == 0 && totals[i] > 0) {
+            printf(".");    // spent something, but too small for a full star
+            printed = 1;
+        }
+
+        printf(RESET);                      // colour off, before the padding
+
+        // fill the rest of the 20-wide bar area with spaces
+        for (int j = printed; j < 20; j++) {
+            printf(" ");
+        }
+
+        printf(" %12.2f  %5.1f%%\n", totals[i], percent);
     }
 }
 
