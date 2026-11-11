@@ -39,13 +39,32 @@ const char *CATEGORY_NAMES[NUM_CATEGORIES] = {
 #define BRIGHT_BLUE    "\033[94m"
 #define BRIGHT_MAGENTA "\033[95m"
 #define BRIGHT_CYAN    "\033[96m"
-#define RESET          "\033[0m"
+#define BOLD           "\033[1m"
+#define UNDERLINE      "\033[4m"
+#define RESET          "\033[0m"    // turns off colour, bold and underline
 
 // One colour per category, in the same order as CATEGORY_NAMES.
 const char *CATEGORY_COLORS[NUM_CATEGORIES] = {
     GREEN, BRIGHT_CYAN, BRIGHT_MAGENTA, YELLOW,
     BRIGHT_BLUE, BRIGHT_YELLOW, MAGENTA, GREY
 };
+
+
+//DISPLAY
+
+void showHeading(const char *text)
+{
+    // Screen title: bold and underlined, with a blank line above.
+    printf("\n" BOLD UNDERLINE "%s" RESET "\n", text);
+}
+
+void showSubHeading(const char *text)
+{
+    // Smaller label inside a screen: bold only.
+    printf("\n" BOLD "%s" RESET "\n", text);
+}
+
+//DISPLAY END
 
 
 //FILE
@@ -230,7 +249,7 @@ void sortExpenses(struct Expense list[], int count, int mode)
 
 void showExpenseTable(struct Expense list[], int count)
 {
-    printf("\n%-5s %-12s %-15s %12s  %s\n",
+    printf("\n" BOLD "%-5s %-12s %-15s %12s  %s" RESET "\n",
            "ID", "Date", "Category", "Amount", "Description");
 
     printf("-------------------------------------------------------------------------------\n");
@@ -262,7 +281,7 @@ void showCategoryChart(struct Expense list[], int count)
             biggest = totals[i];
     }
 
-    printf("\nCATEGORY SPENDING CHART\n");
+    showHeading("CATEGORY SPENDING CHART");
 
     if (biggest == 0 || total == 0) {
         printf("No spending to display.\n");
@@ -322,7 +341,7 @@ void showSummary(struct Expense list[], int count)
 
     calculateCategoryTotals(list, count, totals);
 
-    printf("\nEXPENSE SUMMARY\n");
+    showHeading("EXPENSE SUMMARY");
     printf("Total spent: %.2f\n", total);
     printf("This month's spending: %.2f\n", monthly);
 
@@ -436,7 +455,7 @@ int deleteExpense(struct Expense list[], int count)
         return count;
     }
 
-    printf("\nExpense found:\n");
+    showSubHeading("Expense found:");
     showOneExpense(list[index]);
 
     int confirm = inputYesNo("Are you sure you want to delete? (y/n): ");
