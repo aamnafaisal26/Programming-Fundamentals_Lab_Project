@@ -213,10 +213,29 @@ int dateToNumber(int day, int month, int year){
 }
 //END
 
-int addExpense(struct Expense list[], int count, struct Settings *s);
-// Stops if list is full. Fills one record using the input functions,
-// adds it to list, saves the file, prints "Added", shows the budget warning.
-// Returns the new count.
+int addExpense(struct Expense list[], int count, struct Settings *s){
+    if(count>=MAX_EXPENSES){
+        printf("Storage Full\n");
+        return count;
+    }
+    struct Expense e;
+    e.id=generateNextId(list,count);
+    inputDate(&e.day, &e.month, &e.year);
+    e.category=inputCategory();
+    e.amount=inputAmount("Amount: ", 1);
+    inputText("Description: ", e.description, MAX_DESC);
+    removeCommas(e.description);
+    list[count]=e;
+    count++;
+    saveExpensesToFile(list, count);
+    printf("Added expense #%d\n", e.id);
+    showBudgetWarning(list, count, s, e.month, e.year);
+    return count;
+
+
+    
+}
+
 
 int generateNextId(struct Expense list[], int count){
     int biggest=0;
@@ -547,9 +566,44 @@ void showSearchResults(struct Expense results[], int found, int showTotal);
 
 //EDIT
 
-void editExpense(struct Expense list[], int count, struct Settings *s);
-// Asks an id, finds it (-1 = not found, stop), shows it, asks which field
-// to change (date / category / amount / description), changes it, saves, warns.
+void editExpense(struct Expense list[], int count, struct Settings *s){
+    if (count==0){
+        printf(RED"No Expense Found\n"RESET);
+        return;
+    }
+    showExpenseTable(list, count);
+    int id=inputWholeNumber("Which ID to edit : ",1,999999);
+    int pos=findById(list,count,id);
+    if (pos==-1){
+        printf(RED"No such Id found\n"RESET);
+        return;
+    }
+    showSubHeading("Expense found:");
+    showOneExpense(list[pos]);
+    printf("\n1. Date\n2. Category\n3. Amount\n4. Description\n0. Cancel\n");
+    int field=inputWholeNumber("Which field do you want to edit : ",0,4);
+    switch(field){
+        case 0 :
+            printf("Edit cancelled.\n");
+            return;
+        case 1 :
+            inputDate(&list[pos].day,&list[pos].month,&list[pos].year);
+            break;
+        case 2 :
+            list[pos].category=inputCategory();
+            break;
+        case 3 :
+            list[pos].amount=inputAmount("Enter Amount : ",1);
+            break;
+        case 4 :
+            inputText("Enter Description : ",list[pos].description,MAX_DESC);
+            removeCommas(list[pos].description);
+            break;
+    }
+    saveExpensesToFile(list, count);
+    printf("Expense updated.\n");
+    showBudgetWarning(list, count, s, list[pos].month, list[pos].year);
+}
 
 int findById(struct Expense list[], int count, int id){
     for(int i=0;i<count;i++){
@@ -622,9 +676,44 @@ int deleteExpense(struct Expense list[], int count)
 
 //BUDGET
 
-void showBudget(struct Expense list[], int count, struct Settings *s);
-// Asks month and year. Prints income, spent, remaining, limit, status,
-// and a category chart for that month only.
+double calculateRemaining(struct Settings *s, double spent);
+
+void showBudget(struct Expense list[], int count, struct Settings *s){
+   int todayDay, todayMonth, todayYear;
+   getTodayDate(&todayDay, &todayMonth, &todayYear);
+   int month, year;
+   do {
+    month = inputWholeNumber("Month (1-12): ", 1, 12);
+    year  = inputWholeNumber("Year: ", 2000, todayYear);
+    if (!isDateReal(1, month, year)) {
+        printf("That month hasn't happened yet. Try again.\n");
+    }
+} while (!isDateReal(1, month, year));
+printf(BOLD UNDERLINE "Monthly Budget\n"RESET);
+printf(BOLD"Year of "RESET"%d\n",year);
+printf(BOLD"Month : "RESET"%d\n",month);
+printf(BOLD"Monthly Income : "RESET"%.2f\n",s->monthlyIncome);
+double saved = calculateRemaining(s,calculateMonthSpending(list,count,month,year));
+if (saved < 0) {
+    printf(BOLD"Saved : "RESET RED"%.2f"RESET"\n",saved);
+} else {
+    printf(BOLD"Saved : "RESET"%.2f\n",saved);
+}
+if (s->monthlyIncome == 0) {
+    printf(BOLD"Saved : "RESET RED"%.2f"RESET"\n",saved);
+    printf("Tip: set your monthly income in Settings.\n");
+}
+showBudgetWarning(list,count,s,month,year);
+struct Expense results[MAX_EXPENSES];
+int found = filterByMonth(list, count, month, year, results);
+if (found > 0) {
+    showCategoryChart(results, found);
+} else {
+    printf("No expenses this month.\n");
+}
+
+
+}
 
 double calculateRemaining(struct Settings *s, double spent){
     return (s->monthlyIncome-spent);
@@ -646,18 +735,74 @@ void showSettings(struct Settings *s);
 
 //MENU
 
-void showMenu(void);
 // Prints the title and options:
 // 1 Add  2 View  3 Search  4 Edit  5 Delete  6 Budget  7 Settings  0 Exit
+void showMenu(void){
+    showHeading("BUDGET TRACKER");
+    printf("1. Add expense\n");
+    printf("2. View expenses\n");
+    printf("3. Search\n");
+    printf("4. Edit expense\n");
+    printf("5. Delete expense\n");
+    printf("6. Monthly budget\n");
+    printf("7. Settings\n");
+    printf("\n0. Exit\n");
+}
 
-void clearScreen(void);
-// system("cls")
+void clearScreen(void){
+    system("cls");
+}
 
-void pauseScreen(void);
-// Prints "Press Enter to continue" and waits for Enter.
+void pauseScreen(void){
+    printf("Press Enter to continue.....");
+    char line[100];
+    fgets(line, 100, stdin);
+}
 
-int main(void);
-// Loads both files. Loops: clearScreen, showMenu, read choice 0-7,
-// call that option, pauseScreen. Add and Delete give back the new count.
+int main(){
+    //defining structure and datatype
+    struct Expense expenses[MAX_EXPENSES];
+    struct Settings settings;
+    int count,choice;
+    //loading file
+    loadSettingsFromFile(&settings);
+    count = loadExpensesFromFile(expenses);
+    //running the main program
+    do{
+        clearScreen();
+        showMenu();
+        choice=inputWholeNumber("What do you wanna do (0-7) : ",0,7);
+        switch (choice)
+        {
+        case 0:
+             printf(BOLD GREEN"Goodbye\n"RESET);
+             
+             break;
+        case 1:
+            count=addExpense(expenses,count,&settings);
+            break;
+        case 2:
+            viewExpenses(expenses,count);
+            break;
+        case 3:
+            searchExpenses(expenses,count);
+            break;
+        case 4:
+            editExpense(expenses,count,&settings);
+            break;
+        case 5:
+            count = deleteExpense(expenses, count);
+            break;
+        case 6:
+            showBudget(expenses,count,&settings);
+            break;
+        case 7:
+            changeSettings(&settings);
+            break;
+        }
+        pauseScreen();
+    }while(choice!=0);
+    return 0;
+}
 
 //MENU END
