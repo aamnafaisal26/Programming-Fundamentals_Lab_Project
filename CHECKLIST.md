@@ -138,6 +138,6 @@ Once Mehreen pushes, the whole team should run the program once from start to fi
 - [ ] Update the PDF or tell the team that the files are now `Expenses.csv` and `Settings.csv`.
 - [ ] Tell the team that `showBudgetStatus` was dropped; `showBudgetWarning` does that job.
 - [ ] Remove the duplicate `//VIEW` marker.
-- [ ] Hania: show the expense table before asking for an ID in Delete, as Edit already does.
+- [x] Show the expense table before asking for an ID in Delete, as Edit already does.
 - [ ] Use `showHeading` for the Budget screen's title, to match the other screens.
 - [ ] Test the colours in the terminal used for the demo.

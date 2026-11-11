@@ -642,6 +642,8 @@ int deleteExpense(struct Expense list[], int count)
         return count;
     }
 
+    showExpenseTable(list, count);
+
     int id = inputWholeNumber("Enter expense ID to delete: ", 1, 999999);
     int index = findById(list, count, id);
 
