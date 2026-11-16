@@ -241,7 +241,13 @@ int inputWholeNumber(const char *prompt, int min, int max)
     int value;
     while(1){
     printf("%s",prompt);
-    if(scanf("%d",&value)==1 && value<=max && value>=min)
+    int got=scanf("%d",&value);
+    if(got==EOF)
+    {
+        printf("\nInput ended. Exiting.\n");
+        exit(0);
+    }
+    if(got==1 && value<=max && value>=min)
     {
         scanf("%*[^\n]");
         scanf("%*c");
@@ -264,7 +270,13 @@ double inputAmount(const char *prompt, double min)
     while(1){
          
         printf("%s",prompt);
-     if(scanf("%lf",&amount)== 1 && amount>=min)
+        int got=scanf("%lf",&amount);
+        if(got==EOF)
+        {
+            printf("\nInput ended. Exiting.\n");
+            exit(0);
+        }
+     if(got== 1 && amount>=min)
         {   
             scanf("%*[^\n]");
             scanf("%*c");
@@ -288,7 +300,11 @@ void inputText(const char *prompt, char string[], int size)
    {
     printf("%s",prompt);
     string[0]='\0';
-    scanf("%49[^\n]",string);
+    if(scanf("%49[^\n]",string)==EOF)
+    {
+        printf("\nInput ended. Exiting.\n");
+        exit(0);
+    }
     scanf("%*[^\n]");
     scanf("%*c");
     if(string[0]!='\0')
@@ -310,7 +326,11 @@ int inputYesNo(const char *prompt)
     while(1)
     {
         printf("%s",prompt);
-        scanf(" %c",&value);
+        if(scanf(" %c",&value)==EOF)
+        {
+            printf("\nInput ended. Exiting.\n");
+            exit(0);
+        }
         scanf("%*[^\n]");
         scanf("%*c");
         if(value=='Y' || value=='y')

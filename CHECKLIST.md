@@ -1,23 +1,23 @@
 # Budget Tracker: Function Checklist
 
-Last updated: 11 November 2026
+Last updated: 16 November 2026
 
 ## Overall progress
 
-**37 of 52 functions done: 71% complete**
+**53 of 53 functions done: 100% complete**
 
 ```
-[####################################..............]  71%
+[##################################################]  100%
 ```
 
 | Teammate | Areas | Done | Progress |
 |---|---|---|---|
 | **Aamna** | Display, File, Date, Add, Edit, Budget, Menu | 25 / 25 | `[####################]` 100% |
 | **Hania** | View, Delete | 12 / 12 | `[####################]` 100% |
-| **Mehreen** | Input, Search, Settings | 0 / 15 | `[....................]` 0% |
-| **Total** | | **37 / 52** | `[##############......]` **71%** |
+| **Mehreen** | Input, Search, Settings | 16 / 16 | `[####################]` 100% |
+| **Total** | | **53 / 53** | `[####################]` **100%** |
 
-Everything except Mehreen's 15 functions is written and tested. The full program was run end to end with stand-ins for Mehreen's functions: adding, viewing, editing, deleting, the budget screen and settings all worked, and the data survived a restart.
+Every function is written. The finished program was run end to end on 16 November: settings, adding (with bad dates, categories, amounts and empty text all rejected), viewing, all four searches, editing, deleting and the budget screen worked, and the data survived a restart. It also closes cleanly if the input ends suddenly.
 
 ---
 
@@ -93,43 +93,44 @@ Everything except Mehreen's 15 functions is written and tested. The full program
 
 ---
 
-# Mehreen: 0 of 15 done (0%)
+# Mehreen: 16 of 16 done (100%)
 
-## Input: 0 / 6
+## Input: 6 / 6
 
-- [ ] `inputWholeNumber`: asks until it gets a whole number in range
-- [ ] `inputAmount`: asks until it gets a number at or above a minimum
-- [ ] `inputText`: reads a full line of text
-- [ ] `inputYesNo`: returns 1 for y, 0 for n
-- [ ] `inputDate`: asks day, month, year until `isDateReal` accepts it
-- [ ] `inputCategory`: shows the list, returns the choice as 0 to 7
+- [x] `inputWholeNumber`: asks until it gets a whole number in range
+- [x] `inputAmount`: asks until it gets a number at or above a minimum
+- [x] `inputText`: reads a full line of text
+- [x] `inputYesNo`: returns 1 for y, 0 for n
+- [x] `inputDate`: asks day, month, year until `isDateReal` accepts it
+- [x] `inputCategory`: shows the list, returns the choice as 0 to 7
 
-## Search: 0 / 7
+## Search: 8 / 8
 
-- [ ] `searchExpenses`: asks how to search, then shows the results
-- [ ] `searchByCategory`: expenses in one category
-- [ ] `searchByMonth`: asks a month, then calls `filterByMonth`
-- [ ] `filterByMonth`: expenses in one month. *Aamna's Budget screen also uses this.*
-- [ ] `searchByDescription`: expenses whose description contains a word
-- [ ] `containsIgnoreCase`: word search that ignores capital letters
-- [ ] `showSearchResults`: prints the results table
+- [x] `searchExpenses`: asks how to search, then shows the results
+- [x] `searchByCategory`: expenses in one category
+- [x] `searchByMonth`: asks a month, then calls `filterByMonth`
+- [x] `searchByYear`: expenses in one year, with a total. *Extra feature, not in the original plan.*
+- [x] `filterByMonth`: expenses in one month. *Aamna's Budget screen also uses this.*
+- [x] `searchByDescription`: expenses whose description contains a word
+- [x] `containsIgnoreCase`: word search that ignores capital letters
+- [x] `showSearchResults`: prints the results table
 
-## Settings: 0 / 2
+## Settings: 2 / 2
 
-- [ ] `changeSettings`: change income or limit, then save. *Change only `monthlyIncome` or `monthlyLimit`, then call `saveSettingsToFile(s)`. Settings.csv also stores `lastId`, the ID counter, and it must not be reset.*
-- [ ] `showSettings`: prints income and limit
+- [x] `changeSettings`: change income or limit, then save, keeping the ID counter
+- [x] `showSettings`: prints income and limit
 
 ---
 
-## What is blocking the finished program
+## Next: test as a team
 
-Only Mehreen's functions. Every other piece is already written and waiting for them.
+Every function is written, so nothing is blocking the program any more. Before the demo, each teammate should pull, build and run it once from start to finish:
 
-1. **Input** first: the menu, Add, Edit, the Budget screen and View's sort question all ask the user through these. Until they exist, the program cannot run.
-2. **`filterByMonth`** next: the Budget screen needs it for that month's chart.
-3. **Settings and the rest of Search**: after those, every menu option works.
-
-Once Mehreen pushes, the whole team should run the program once from start to finish.
+```bash
+git pull
+gcc -Wall budgetTracker.c -o budgetTracker.exe
+./budgetTracker.exe
+```
 
 ## Tidy-up before the demo
 
@@ -141,5 +142,8 @@ Once Mehreen pushes, the whole team should run the program once from start to fi
 - [x] Show the expense table before asking for an ID in Delete, as Edit already does.
 - [x] Use `showHeading` for the Budget screen's title, to match the other screens.
 - [x] Put `0. Exit` with the other menu options, and say what 0 does in every prompt that accepts it.
-- [ ] Mehreen: the Search and Settings prompts that accept 0 should say what it does, for example `"Search how (0 to go back): "`.
+- [x] The Settings prompt that accepts 0 says what it does.
+- [x] Input functions close the program cleanly if the input ends suddenly, instead of looping forever.
+- [ ] Optional: let Search go back with 0, like Edit and Settings.
+- [ ] Optional: reject numbers with letters after them, such as `5abc`, instead of reading them as 5.
 - [ ] Test the colours in the terminal used for the demo.
