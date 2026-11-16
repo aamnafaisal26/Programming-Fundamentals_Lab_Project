@@ -98,6 +98,7 @@ void   viewExpenses(struct Expense list[], int count);
 void   searchExpenses(struct Expense list[], int count);
 int    searchByCategory(struct Expense list[], int count, struct Expense results[]);
 int    searchByMonth(struct Expense list[], int count, struct Expense results[]);
+int    searchByYear(struct Expense list[], int count, struct Expense results[]);
 int    filterByMonth(struct Expense list[], int count, int month, int year, struct Expense results[]);
 int    searchByDescription(struct Expense list[], int count, struct Expense results[]);
 int    containsIgnoreCase(const char text[], const char word[]);
@@ -233,26 +234,127 @@ void loadSettingsFromFile(struct Settings *s){
 
 //INPUT
 
-int inputWholeNumber(const char *prompt, int min, int max);
+int inputWholeNumber(const char *prompt, int min, int max) 
+{
 // Shows the prompt, reads the typed line, pulls out a whole number.
 // Keeps asking until the number is between min and max.
+    int value;
+    while(1){
+    printf("%s",prompt);
+    if(scanf("%d",&value)==1 && value<=max && value>=min)
+    {
+        scanf("%*[^\n]");
+        scanf("%*c");
+        return value;
+    }
+    else 
+    {
+        printf(RED BOLD "Please enter whole number within %d to %d\n"RESET,min,max);
+        scanf("%*[^\n]");
+        scanf("%*c");
+    }
+    }
+}
 
-double inputAmount(const char *prompt, double min);
-// Same as above but for a decimal number, only a minimum (expenses use 1).
 
-void inputText(const char *prompt, char string[], int size);
-// Reads a whole line with spaces into string, removes the newline.
-// Asks again if the line is empty.
+double inputAmount(const char *prompt, double min)
+{
+    // Same as above but for a decimal number, only a minimum (expenses use 1).
+    double amount;
+    while(1){
+         
+        printf("%s",prompt);
+     if(scanf("%lf",&amount)== 1 && amount>=min)
+        {   
+            scanf("%*[^\n]");
+            scanf("%*c");
+            return amount;
+        }
+        else 
+        {
+            printf(RED BOLD "Please enter amount greater than %.2f\n"RESET,min);
+             scanf("%*[^\n]");
+            scanf("%*c");
+        }
+    }
+}
 
-int inputYesNo(const char *prompt);
-// Returns 1 for y/Y, 0 for n/N, asks again for anything else.
 
-void inputDate(int *day, int *month, int *year);
-// Asks day, month, year using inputWholeNumber.
-// Asks all three again until isDateReal returns 1.
+void inputText(const char *prompt, char string[], int size)
+{
+    // Reads a whole line with spaces into string, removes the newline.
+    // Asks again if the line is empty.
+   while(1)
+   {
+    printf("%s",prompt);
+    string[0]='\0';
+    scanf("%49[^\n]",string);
+    scanf("%*[^\n]");
+    scanf("%*c");
+    if(string[0]!='\0')
+    {
+        return;
+    }
+    else 
+    {
+        printf(RED BOLD"Please enter description\n"RESET);
+    }
+  }
+}
 
-int inputCategory(void);
-// Shows the category list, asks for 1-8, returns the (answer minus 1).
+
+int inputYesNo(const char *prompt)
+{
+    // Returns 1 for y/Y, 0 for n/N, asks again for anything else.
+    char value;
+    while(1)
+    {
+        printf("%s",prompt);
+        scanf(" %c",&value);
+        scanf("%*[^\n]");
+        scanf("%*c");
+        if(value=='Y' || value=='y')
+        {
+            return 1;
+        }
+        else if(value=='N' || value=='n')
+        {
+            return 0;
+        }
+        else 
+        {
+            printf(RED BOLD"Please enter Y/y for Yes and N/n for No\n"RESET);
+        }
+    }
+}
+
+
+void inputDate(int *day, int *month, int *year)
+{
+    int TodayDay,TodayMonth,TodayYear;
+    getTodayDate(&TodayDay,&TodayMonth,&TodayYear);
+    do 
+    {
+        // Asks day, month, year using inputWholeNumber.
+        // Asks all three again until isDateReal returns 1.
+        *day=inputWholeNumber("Day: ",1,31);
+        *month=inputWholeNumber("Month: ",1,12);
+        *year=inputWholeNumber("Year: ",2000,TodayYear);
+        if(!isDateReal(*day,*month,*year))
+        {
+            printf(RED BOLD "This date is not valid.Please enter again\n"RESET);
+        }
+    }while(!isDateReal(*day,*month,*year));
+}
+
+int inputCategory(void)
+{
+    // Shows the category list, asks for 1-8, returns the (answer minus 1).
+    showCategoryList();
+    return inputWholeNumber("Choose Category (1-8):",1,NUM_CATEGORIES)-1;
+
+}
+
 
 //INPUT END
 
@@ -617,27 +719,171 @@ void viewExpenses(struct Expense list[], int count)
 
 //SEARCH
 
-void searchExpenses(struct Expense list[], int count);
-// Asks 1 category / 2 month / 3 description, runs that search into a results
-// array, shows the results. Total is shown only for a month search.
+void searchExpenses(struct Expense list[], int count)
+{
+    // Asks 1 category / 2 month / 3 description, runs that search into a results
+   // array, shows the results. Total is shown only for a month search.
+    if(count==0)
+     {
+        printf(RED BOLD "No expenses found\n"RESET);
+        return;
+     }
+     struct Expense results[MAX_EXPENSES];
+     int found=0;
+     int showtotal=0;
+     printf("\n1. Search by category");
+    printf("\n2. Search by month");
+    printf("\n3. Search by description");
+    printf("\n4. Search by year\n");
+    int choice=inputWholeNumber("Choose search type: ",1,4);
+    switch(choice)
+    {
+        case 1 :
+            found=searchByCategory(list,count,results);
+            break;
+        case 2 :
+            found=searchByMonth(list,count,results);
+            showtotal=1;
+            break;
+        case 3 :
+            found=searchByDescription(list,count,results);
+            break;
+            case 4:
+            found=searchByYear(list,count,results);
+            showtotal=1;
+            break;
+    }
+    showSearchResults(results,found,showtotal);
+}
 
-int searchByCategory(struct Expense list[], int count, struct Expense results[]);
-// Asks a category, copies matching records into results, returns how many.
 
-int searchByMonth(struct Expense list[], int count, struct Expense results[]);
-// Asks month and year, then calls filterByMonth.
 
-int filterByMonth(struct Expense list[], int count, int month, int year, struct Expense results[]);
-// Copies records of that month into results, returns how many. Also used by Budget.
+int searchByCategory(struct Expense list[], int count, struct Expense results[])
+{
+    // Asks a category, copies matching records into results, returns how many.
+    int category=inputCategory();
+    int found=0;
+    for(int i=0;i<count;i++)
+    {
+        if(list[i].category==category)
+        {
+            results[found]=list[i];
+            found++;
+        }
+    }
+    return found;
+}
 
-int searchByDescription(struct Expense list[], int count, struct Expense results[]);
-// Asks a word, copies records whose description contains it, returns how many.
 
-int containsIgnoreCase(const char text[], const char word[]);
-// Returns 1 if word appears inside text, ignoring upper/lower case.
+int searchByMonth(struct Expense list[], int count, struct Expense results[])
+{
+    // Asks month and year, then calls filterByMonth.
+    int todayDay,todayMonth,todayYear;
+    getTodayDate(&todayDay,&todayMonth,&todayYear);
+    int month,year;
+    do
+    {
+        month=inputWholeNumber("Month (1-12): ",1,12);
+        year=inputWholeNumber("Year: ",2000,todayYear);
+        if(!isDateReal(1,month,year))
+        {
+            printf(RED BOLD"That month hasn't happened yet. Try again.\n"RESET);
+        }
+    }while(!isDateReal(1,month,year));
+    return filterByMonth(list,count,month,year,results);
+}
 
-void showSearchResults(struct Expense results[], int found, int showTotal);
-// Prints "nothing found", or the table of results, plus the total if showTotal is 1.
+int searchByYear(struct Expense list[], int count, struct Expense results[])
+{
+    // Asks a year, copies records of that year into results, returns how many.
+    int todayDay,todayMonth,todayYear;
+    getTodayDate(&todayDay,&todayMonth,&todayYear);
+    int year=inputWholeNumber("Year: ",2000,todayYear);
+    int found=0;
+    for(int i=0;i<count;i++)
+    {
+        if(list[i].year==year)
+        {
+            results[found]=list[i];
+            found++;
+        }
+    }
+    return found;
+}
+
+
+
+int filterByMonth(struct Expense list[], int count, int month, int year, struct Expense results[])
+{
+    // Copies records of that month into results, returns how many. Also used by Budget.
+    int found=0;
+    for(int i=0;i<count;i++)
+    {
+        if(list[i].month==month && list[i].year==year)
+        {
+            results[found]=list[i];
+            found++;
+        }
+    }
+    return found;
+}
+
+int searchByDescription(struct Expense list[], int count, struct Expense results[])
+{ 
+    // Asks a word, copies records whose description contains it, returns how many.
+    char word[MAX_DESC];
+    inputText("Search word: ",word,MAX_DESC);
+    int found=0;
+    for(int i=0;i<count;i++)
+    {
+        if(containsIgnoreCase(list[i].description,word))
+        {
+            results[found]=list[i];
+            found++;
+        }
+    }
+    return found;
+
+}
+
+
+int containsIgnoreCase(const char text[], const char word[])
+{
+    // Returns 1 if word appears inside text, ignoring upper/lower case.
+    int textLength=strlen(text);
+    int wordLength=strlen(word);
+    for(int i=0;i+wordLength<=textLength;i++)
+    {
+        int j=0;
+        while(j<wordLength && tolower(text[i+j])==tolower(word[j]))
+        {
+            j++;
+        }
+        if(j==wordLength)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+void showSearchResults(struct Expense results[], int found, int showTotal)
+{
+
+    // Prints "nothing found", or the table of results, plus the total if showTotal is 1.
+    if(found==0)
+    {
+        printf(RED BOLD"Nothing found.\n"RESET);
+        return;
+    }
+    showExpenseTable(results,found);
+    printf("Found %d expense(s).\n",found);
+    if(showTotal==1)
+    {
+        printf(BOLD"Total : "RESET"%.2f\n",calculateTotal(results,found));
+    }
+}
 
 //SEARCH END
 
@@ -799,11 +1045,43 @@ double calculateRemaining(struct Settings *s, double spent){
 
 //SETTINGS
 
-void changeSettings(struct Settings *s);
-// Shows settings, asks 1 income / 2 limit / 0 back, reads the new value, saves.
+void changeSettings(struct Settings *s)
+{
+    // Shows settings, asks 1 income / 2 limit / 0 back, reads the new value, saves.
+    showHeading("SETTINGS");
+    showSettings(s);
+    printf(BOLD "\n1.Change monthly income\n 2.Change monthly limit(0= No limit).\n 0.Back\n"RESET);
+    int choice=inputWholeNumber("Choose (0 to go back):",0,2);
+    switch(choice)
+    {
+        case 0:
+        return;
+        case 1:
+        s->monthlyIncome=inputAmount("New Monthly Income:",0);
+        break;
+        case 2:
+        s->monthlyLimit=inputAmount("New monthly limit (0 for none):",0);
+        break;
+     }
+     saveSettingsToFile(s);
+     printf(BOLD GREEN "New Settings Changed\n"RESET);
+}
 
-void showSettings(struct Settings *s);
-// Prints monthly income and limit ("none" if 0).
+
+void showSettings(struct Settings *s)
+{
+    // Prints monthly income and limit ("none" if 0).
+    printf(BOLD "Monthly Income:"RESET"%.2f\n",s->monthlyIncome);
+   if(s->monthlyLimit<=0)
+   {
+    printf(BOLD "Monthly Limit:"RESET"None\n");
+   }
+   else 
+   {
+    printf(BOLD "Monthly Limit:"RESET"%.2f\n",s->monthlyLimit);
+   }
+}
+
 
 //SETTINGS END
 
