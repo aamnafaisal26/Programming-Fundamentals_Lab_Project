@@ -476,6 +476,7 @@ double calculateMonthSpending(struct Expense list[], int count, int month, int y
 
 void showBudgetWarning(struct Expense list[], int count, struct Settings *s, int month, int year){
     if (s->monthlyLimit<=0){
+        printf("\nNo spending limit set. Set one in Settings to see your budget status.\n");
         return;
     }
     double total=calculateMonthSpending(list,count,month,year);
